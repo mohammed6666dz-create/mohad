@@ -75,17 +75,58 @@
   <meta charset="UTF-8">
   <title>Chat App</title>
   <style>
-    body { margin:0; font-family:Arial, sans-serif; background:#f0f0f0; }
-    .profile-btn { position:absolute; top:10px; right:10px; cursor:pointer; }
-    .profile-btn img { width:40px; height:40px; border-radius:50%; border:2px solid #fff; }
-    .profile-popup { position:fixed; top:0; right:-350px; width:300px; height:100%; background:#111; color:#fff; transition:0.3s; padding:20px; overflow-y:auto; z-index:1000; }
-    .profile-popup.active { right:0; }
-    .profile-header { text-align:center; margin-bottom:20px; }
-    .profile-header img { width:80px; height:80px; border-radius:50%; border:3px solid #fff; cursor:pointer; }
-    .profile-header h2 { margin:10px 0 0; }
-    .profile-option { padding:10px; border-bottom:1px solid #333; cursor:pointer; }
-    .profile-option:hover { background:#222; }
-    .close-btn { position:absolute; top:10px; left:10px; font-size:20px; cursor:pointer; }
-  </style>
-</head>
-</body>
+   body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: url('images/MOHADZ.jpg') no-repeat center center fixed;
+  background-size: cover;
+}
+
+/* زر البروفايل */
+.profile-btn { 
+  position: absolute; 
+  top: 10px; 
+  right: 10px; 
+  cursor: pointer; 
+}
+
+.profile-btn img { 
+  width: 40px; 
+  height: 40px; 
+  border-radius: 50%; 
+  border: 2px solid #000000; 
+}
+
+.profile-popup { 
+  position: fixed; 
+  top: 0; 
+  right: -350px; 
+  width: 300px; 
+  height: 100%; 
+  background: #111; 
+  color: #000000; 
+  transition: 0.3s; 
+  padding: 20px; 
+  overflow-y: auto; 
+  z-index: 1000; 
+}
+
+.profile-popup.active { right: 0; }
+
+.profile-header { text-align: center; margin-bottom: 20px; }
+
+.profile-header img { 
+  width: 80px; 
+  height: 80px; 
+  border-radius: 50%; 
+  border: 3px solid rgba(9, 17, 134, 0)
+  rgb(0, 0, 0) pointer
+}
+
+.profile-header h2 { margin: 10px 0 0; }
+
+.profile-option { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; }
+
+.profile-option:hover { background: #222; }
+
+.close-btn { position: absolute; top: 10px; left: 10px; font-size: 20px; cursor: pointer; }

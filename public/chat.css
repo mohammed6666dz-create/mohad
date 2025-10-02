@@ -1,4 +1,14 @@
-.chat-wrap {
-  background: url("imagesbg.jpg") no-repeat center center fixed;
-  background-size: cover;
+.message.system {
+  color: gray;
+  font-style: italic;
+  text-align: center;
+  margin: 5px 0;
+}
+.message.me {
+  text-align: right;
+  color: white;
+}
+.message.other {
+  text-align: left;
+  color: lightblue;
 }

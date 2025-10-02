@@ -1,4 +1,4 @@
-// غيّر الرابط هنا إلى سيرفرك على Render
+// الاتصال بالسيرفر
 const socket = io("https://friendly-umbrella-urtz.onrender.com/");
 
 // بيانات المستخدم من URL
@@ -12,41 +12,22 @@ socket.emit("joinRoom", { room, username, avatar: "" });
 // استقبال الرسائل القديمة
 socket.on("messageHistory", (messages) => {
   const box = document.getElementById("chat-box");
-  messages.forEach(data => {
+  messages.forEach(msg => {
     const div = document.createElement("div");
-    div.className = data.user === username ? "message me" : "message other";
-    div.innerText = data.user + ": " + data.text;
+    div.className = msg.user === username ? "message me" : "message other";
+    div.innerText = msg.user + ": " + msg.msg;
     box.appendChild(div);
   });
   box.scrollTop = box.scrollHeight;
 });
 
 // استقبال الرسائل الجديدة
-socket.on("message", (data) => {
+socket.on("message", (msg) => {
+  if(!msg || !msg.user) return; // يمنع الخطأ
   const box = document.getElementById("chat-box");
   const div = document.createElement("div");
-  div.className = data.user === username ? "message me" : "message other";
-  div.innerText = data.user + ": " + data.text;
+  div.className = msg.user === username ? "message me" : "message other";
+  div.innerText = msg.user + ": " + (msg.msg || msg.text || "");
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 });
-
-// إرسال رسالة
-function sendMessage(e) {
-  e.preventDefault();
-  const input = document.getElementById("msg");
-  const msg = input.value.trim();
-  if (!msg) return;
-
-  const timestamp = new Date().toLocaleTimeString();
-
-  socket.emit("chatMessage", {
-    room,
-    user: username,
-    avatar: "",
-    msg,
-    time: timestamp
-  });
-
-  input.value = "";
-}

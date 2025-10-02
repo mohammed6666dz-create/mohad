@@ -78,7 +78,7 @@ body{
   border-radius:10px;
   border:none;
   background:var(--mine);
-  color:#04221b;
+  color:#fff;
   font-weight:700;
   cursor:pointer
 }
@@ -127,8 +127,8 @@ const messagesDiv = document.getElementById("messages");
 const input = document.getElementById("msgInput");
 const sendBtn = document.getElementById("sendBtn");
 
-const userRanks = { [username]: "👑 مدير الموقع" };
-const adminUser = "MOHAMED"; // فقط المدير يعطي الرتب
+const userRanks = { "MOHAMED": "👑 مدير الموقع" }; // تعريف صح
+const adminUser = "MOHAMED"; // المدير الوحيد
 
 function getUserRank(user){
   return userRanks[user] || "👤 عضو";
@@ -187,12 +187,11 @@ function showUserMenu(user, e){
 }
 
 function setRank(rank){
-  if(username !== adminUser) return; // فقط المدير يعطي الرتب
+  if(username !== adminUser) return; 
   if(selectedUser){
     const oldRank = getUserRank(selectedUser);
     userRanks[selectedUser] = rank;
 
-    // رسالة النظام لإظهار تغيير الرتبة
     addMessageToDOM(
       "النظام",
       "https://i.pravatar.cc/60",
@@ -214,8 +213,9 @@ function leaveChat(){
   window.location.href = "index.html";
 }
 
-// رسالة ترحيب
 addMessageToDOM("النظام", avatar, username + " دخل الشات", false);
 </script>
 </body>
 </html>
+<script src="/socket.io/socket.io.js"></script> 
+<div id="chat-box"></div>

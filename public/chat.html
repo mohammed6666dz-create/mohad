@@ -219,27 +219,23 @@ addMessageToDOM("النظام", avatar, username + " دخل الشات", false);
 <script>
   const socket = io("https://friendly-umbrella-urtz.onrender.com/"); // رابط السيرفر
 
-  const room = "عام"; // أو خليه من URL param لو عندك
+  const room = "عام"; 
   socket.emit("joinRoom", { room, username, avatar });
 
-  // استقبال الرسائل القديمة
   socket.on("messageHistory", (messages) => {
     messages.forEach(msg => {
       addMessageToDOM(msg.user, msg.avatar || "https://i.pravatar.cc/60", msg.msg || msg.text, msg.user === username, msg.time);
     });
   });
 
-  // استقبال الرسائل الجديدة
   socket.on("message", (msg) => {
     addMessageToDOM(msg.user, msg.avatar || "https://i.pravatar.cc/60", msg.msg || msg.text, msg.user === username, msg.time);
   });
 
-  // systemMessage
   socket.on("systemMessage", (txt) => {
     addMessageToDOM("النظام", "https://i.pravatar.cc/60", txt, false);
   });
 
-  // تعديل sendMessage لإرسال الرسائل للباك إند
   const oldSend = sendMessage;
   sendMessage = function(){
     const txt = input.value.trim();
@@ -251,6 +247,271 @@ addMessageToDOM("النظام", avatar, username + " دخل الشات", false);
 
 </body>
 </html>
+<!-- نافذة البروفايل المنبثق -->
+<div class="modal-bg" id="profileModal">
+  <div class="modal-content">
+    <button class="close-btn" id="profileClose">&times;</button>
+    <div class="profile-top">
+      <div class="profile-background" id="profileHeader"></div>
+      <img src="" class="profile-avatar" id="profileImage">
+      <div class="profile-actions">
+        <button class="add-friend">إضافة صديق</button>
+        <button class="message-user">مراسلة خاصة</button>
+      </div>
+    </div>
+    <div class="profile-body">
+      <h2 id="profileName">اسم المستخدم</h2>
+      <p id="profileStatus">نشط الآن</p>
+      <div class="profile-info">
+        <h4>الرومات الحالية:</h4>
+        <ul id="profileRooms"></ul>
+      </div>
+    </div>
+  </div>
+</div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="client.js"></script>
+<style>
+.modal-bg {
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index:1000;
+}
+.modal-content {
+  background: #1a1a1a;
+  width: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:0 8px 25px rgba(0,0,0,0.5);
+  position: relative;
+  color:#fff;
+  font-family:"Cairo",sans-serif;
+}
+.close-btn { position:absolute; top:10px; left:10px; background:#d63031; border:none; border-radius:50%; width:30px; height:30px; color:#fff; font-weight:bold; cursor:pointer; }
+.profile-top { position: relative; height:120px; }
+.profile-background { width:100%; height:100%; background-size:cover; background-position:center; }
+.profile-avatar {
+  width: 80px; height:80px;
+  border-radius:50%;
+  border:3px solid #fff;
+  position:absolute;
+  bottom:-40px;
+  left:20px;
+}
+.profile-actions {
+  position:absolute;
+  bottom:-30px;
+  right:20px;
+  display:flex; gap:10px;
+}
+.profile-actions button {
+  padding:6px 12px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:bold;
+}
+.add-friend { background:#00b894; color:#fff; }
+.add-friend:hover { background:#00d084; }
+.message-user { background:#0984e3; color:#fff; }
+.message-user:hover { background:#74b9ff; }
+.profile-body { padding:50px 20px 20px 20px; text-align:left; }
+.profile-body h2 { margin:0 0 5px 0; font-size:20px; }
+.profile-body p { margin:0 0 10px 0; color:#ccc; font-size:14px; }
+.profile-info h4 { margin:0 0 5px 0; font-size:14px; color:#aaa; }
+.profile-info ul { list-style:none; padding:0; margin:0; }
+.profile-info ul li { font-size:14px; color:#bbb; margin-bottom:3px; padding-left:10px; position:relative; }
+.profile-info ul li::before { content:"•"; color:#00bfff; position:absolute; left:0; }
+</style>
+
+<script>
+function showUserProfile(userData){
+  document.getElementById('profileModal').style.display = 'flex';
+  document.getElementById('profileName').innerText = userData.name;
+  document.getElementById('profileStatus').innerText = userData.status;
+  document.getElementById('profileImage').src = userData.avatar;
+  document.getElementById('profileHeader').style.background = `url('${userData.background}') center/cover no-repeat`;
+  const roomsList = document.getElementById('profileRooms');
+  roomsList.innerHTML = '';
+  userData.rooms.forEach(room=>{
+    const li = document.createElement('li');
+    li.innerText = room;
+    roomsList.appendChild(li);
+  });
+}
+document.getElementById('profileClose').addEventListener('click',()=>{
+  document.getElementById('profileModal').style.display='none';
+});
+window.addEventListener('click',(e)=>{
+  if(e.target===document.getElementById('profileModal')){
+    document.getElementById('profileModal').style.display='none';
+  }
+});
+document.addEventListener('click',(e)=>{
+  if(e.target.classList.contains('avatar')){
+    const userData = {
+      name: e.target.getAttribute('data-username') || 'اسم المستخدم',
+      status: 'نشط الآن',
+      avatar: e.target.src,
+      background: 'https://images.unsplash.com/photo-1503264116251-35a269479413?crop=entropy&cs=tinysrgb&fit=max&fm=jpg',
+      rooms: ['#شات-عام','#تكنولوجيا','#ألعاب']
+    };
+    showUserProfile(userData);
+  }
+});
+</script>
+<script>
+// قائمة الأصدقاء محلياً
+let friendsList = {}; 
+
+// عند الضغط على زر إضافة صديق
+document.querySelector('.add-friend').addEventListener('click',()=>{
+  const friend = { name: profileName.innerText, avatar: profileImage.src };
+  if(friendsList[friend.name]) return alert('هذا الشخص صديقك بالفعل!');
+  // إرسال طلب صداقة للباك إند
+  socket.emit('sendFriendRequest', { from: username, to: friend.name, avatar: friend.avatar });
+  alert('تم إرسال طلب الصداقة!');
+});
+
+// عند الضغط على زر مراسلة خاصة
+document.querySelector('.message-user').addEventListener('click',()=>{
+  const friend = { name: profileName.innerText, avatar: profileImage.src };
+  if(!friendsList[friend.name]) return alert('يجب قبول طلب الصداقة أولاً!');
+  openPrivateChat(friend);
+});
+
+// فتح شات خاص
+function openPrivateChat(friend){
+  if(document.getElementById(`chat_${friend.name}`)) return;
+  const chatDiv = document.createElement('div'); 
+  chatDiv.className = 'private-chat'; 
+  chatDiv.id = `chat_${friend.name}`;
+  chatDiv.innerHTML = `
+    <div class="private-header">
+      <span>${friend.name}</span>
+      <button onclick="this.parentElement.parentElement.style.display='none'">✖</button>
+    </div>
+    <div class="private-messages" id="messages_${friend.name}"></div>
+    <div class="private-input">
+      <input id="input_${friend.name}" placeholder="اكتب رسالة...">
+      <button onclick="sendPrivateMessage('${friend.name}')">إرسال</button>
+    </div>
+  `;
+  document.body.appendChild(chatDiv); // أو حطو داخل container مخصص
+}
+
+// إرسال رسالة خاصة
+function sendPrivateMessage(friendName){
+  const inputField = document.getElementById(`input_${friendName}`);
+  const msg = inputField.value.trim(); if(!msg) return;
+  socket.emit('privateMessage', { to: friendName, from: username, avatar, msg, time: new Date().toLocaleTimeString() });
+  inputField.value = '';
+}
+
+// استقبال الرسائل الخاصة من الباك إند
+socket.on('privateMessage', (data)=>{
+  const { from, avatar, msg, time } = data;
+  if(!friendsList[from]) friendsList[from] = { name: from, avatar: avatar }; // إضافة للصداقة لو مش موجود
+  openPrivateChat(friendsList[from]);
+  const messagesDiv = document.getElementById(`messages_${from}`);
+  const div = document.createElement('div'); 
+  div.className = 'private-msg';
+  div.innerHTML = `<img src="${avatar}"><div class="text">${msg}</div><div class="time">${time}</div>`;
+  messagesDiv.appendChild(div);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+});
+
+// استقبال طلبات الصداقة
+socket.on('friendRequest', data => {
+  const accept = confirm(`${data.from} أرسل لك طلب صداقة. قبول؟`);
+  if(accept){
+    friendsList[data.from] = { name: data.from, avatar: data.avatar };
+    socket.emit('friendRequestResponse', { from: username, to: data.from, accepted:true });
+    alert(`تمت إضافة ${data.from} كصديق!`);
+  } else {
+    socket.emit('friendRequestResponse', { from: username, to: data.from, accepted:false });
+  }
+});
+</script>
+<!-- لوحات المراسلة الخاصة -->
+<div class="private-container" id="privateContainer"></div>
+
+<script>
+const privateContainer=document.getElementById('privateContainer');
+
+// فتح نافذة شات خاص
+function openPrivateChat(friend){
+  if(document.getElementById(`chat_${friend.name}`)) return; // لو مفتوح مسبقاً
+  const chatDiv=document.createElement('div');
+  chatDiv.className='private-chat';
+  chatDiv.id=`chat_${friend.name}`;
+  chatDiv.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: ${20 + document.querySelectorAll('.private-chat').length*320}px;
+    width: 300px;
+    background:#111418;
+    border-radius:10px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.4);
+    display:flex;
+    flex-direction:column;
+    z-index:9999;
+    font-family:"Cairo",sans-serif;
+  `;
+  chatDiv.innerHTML=`
+    <div class="private-header" style="padding:10px; background:#222; display:flex; justify-content:space-between; align-items:center; color:#fff; font-weight:bold; border-top-left-radius:10px; border-top-right-radius:10px;">
+      ${friend.name}
+      <button style="background:red;color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;" onclick="this.parentElement.parentElement.remove()">✖</button>
+    </div>
+    <div class="private-messages" id="messages_${friend.name}" style="flex:1; padding:8px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; max-height:250px;"></div>
+    <div class="private-input" style="display:flex; padding:8px; gap:6px; background:#222; border-bottom-left-radius:10px; border-bottom-right-radius:10px;">
+      <input id="input_${friend.name}" placeholder="اكتب رسالة..." style="flex:1; padding:6px; border-radius:6px; border:none; outline:none;"/>
+      <button onclick="sendPrivateMessage('${friend.name}')" style="background:var(--mine); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">إرسال</button>
+    </div>
+  `;
+  privateContainer.appendChild(chatDiv);
+}
+
+// إرسال رسالة خاصة
+function sendPrivateMessage(friendName){
+  const inputField=document.getElementById(`input_${friendName}`);
+  const msg=inputField.value.trim(); if(!msg) return;
+  socket.emit('privateMessage', { to: friendName, from: username, avatar, msg, time: new Date().toLocaleTimeString() });
+  inputField.value='';
+}
+
+// استقبال الرسائل الخاصة
+socket.on('privateMessage', (data)=>{
+  const { from, avatar, msg, time } = data;
+  const friend = { name: from, avatar: avatar };
+  openPrivateChat(friend); // فتح الشات لو مش مفتوح
+  const messagesDiv=document.getElementById(`messages_${from}`);
+  const msgDiv=document.createElement('div');
+  msgDiv.style.cssText = `
+    display:flex;
+    gap:6px;
+    align-items:flex-start;
+    flex-direction:${from===username?'row-reverse':'row'};
+    background:${from===username?'#1900fd':'#2a2f36'};
+    color:#fff;
+    padding:6px 8px;
+    border-radius:8px;
+    max-width:80%;
+    align-self:${from===username?'flex-end':'flex-start'};
+  `;
+  msgDiv.innerHTML=`
+    <img src="${avatar}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+    <div style="display:flex; flex-direction:column;">
+      <span style="font-weight:bold; font-size:13px;">${from}</span>
+      <span>${msg}</span>
+      <span style="font-size:10px; opacity:0.6;">${time}</span>
+    </div>
+  `;
+  messagesDiv.appendChild(msgDiv);
+  messagesDiv.scrollTop=messagesDiv.scrollHeight;
+});
+</script>

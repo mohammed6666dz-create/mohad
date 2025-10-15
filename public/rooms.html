@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>الرومات</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f2027;
+      margin: 0;
+      padding: 0;
+      color: white;
+    }
+    .topbar {
+      background: #18232f;
+      padding: 12px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #00d9ff;
+    }
+    .logo {
+      font-weight: bold;
+      font-size: 1.5em;
+      color: #00d9ff;
+      letter-spacing: 1px;
+    }
+    .user-icon {
+      cursor: pointer;
+      background: #222;
+      color: #fff;
+      font-size: 26px;
+      border-radius: 50%;
+      padding: 6px;
+      margin-right: 0px;
+      transition: background 0.2s;
+      border: 2px solid #0f2027;
+    }
+    .user-icon:hover {
+      background: #00d9ff;
+      color: #222;
+    }
+    .rooms-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 23px;
+      padding: 36px;
+    }
+    .room-card {
+      background: #1e2a38;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      text-align: center;
+      color: #fff;
+      transition: 0.3s;
+    }
+    .room-card:hover {
+      transform: translateY(-5px);
+      background: #243447;
+    }
+    .room-card h3 {
+      margin: 10px 0;
+      color: #00d9ff;
+    }
+    .room-card button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-size: 14px;
+    }
+    .room-card button:hover {
+      background: #0056b3;
+    }
+
+    /* نافذة الملف الشخصي مثل صورة AR */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+    }
+    .profile-content {
+      background: #241e1e;
+      padding: 20px 10px 15px 10px;
+      border-radius: 18px;
+      width: 480px;
+      color: #fff;
+      position: relative;
+      direction: rtl;
+      box-shadow: 0 10px 30px #000a;
+      animation: fadeIn 0.33s;
+      border: 2px solid #333;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.93);}
+      to { opacity: 1; transform: scale(1);}
+    }
+    .profile-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .profile-header-bar .close {
+      font-size: 22px;
+      cursor: pointer;
+      background: #2a2424;
+      border-radius: 8px;
+      padding: 2px 10px;
+      color: #fff;
+      border: none;
+      margin-left: 6px;
+    }
+    .profile-header-bar .music-btn {
+      font-size: 22px;
+      cursor: pointer;
+      background: #2a2424;
+      border-radius: 8px;
+      padding: 2px 10px;
+      color: #fff;
+      border: none;
+      margin-right: 6px;
+    }
+    .profile-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 0px;
+    }
+    .profile-avatar-wrapper {
+      position: relative;
+      width: 100px; height: 100px;
+      margin-left: 9px;
+    }
+    .profile-avatar-wrapper img {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      border: 4px solid #aaa;
+      background: #eee;
+      object-fit: cover;
+    }
+    .avatar-camera {
+      position: absolute;
+      left: 0; top: 0;
+      background: #222;
+      color: #fff;
+      border-radius: 50%;
+      padding: 7px;
+      cursor: pointer;
+      border: 2px solid #fff;
+      font-size: 21px;
+      box-shadow: 0 0 7px #0006;
+      z-index: 2;
+    }
+    .profile-info {
+      flex:1;
+      margin-top: 7px;
+    }
+    .profile-info .profile-nick-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: flex-end;
+      margin-bottom: 3px;
+    }
+    .profile-nick {
+      font-size: 22px;
+      font-weight: bold;
+      color: #ff5555;
+      text-shadow: 0 0 4px #fff5;
+    }
+    .profile-nick-edit {
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 17px;
+      padding: 2px 6px;
+      margin-right: 2px;
+    }
+    #profile-status-edit {
+      background: #333;
+      color: #ffcc00;
+      border: none;
+      border-radius: 4px;
+      padding: 2px 9px;
+      margin-top: 4px;
+      font-size: 17px;
+      text-align: center;
+    }
+    .profile-tabs {
+      margin-bottom: 12px;
+      display: flex;
+      gap: 3px;
+      justify-content: flex-end;
+    }
+    .tab {
+      background: #333;
+      color: #fff;
+      border: none;
+      padding: 7px 13px;
+      border-radius: 6px 6px 0 0;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      outline: none;
+      transition: background 0.2s;
+    }
+    .tab.active {
+      background: #e00;
+    }
+    .profile-form {
+      background: #181818;
+      padding: 12px 7px;
+      border-radius: 0 0 7px 7px;
+      box-shadow: 0 3px 8px #0002;
+      margin-bottom: 3px;
+    }
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 7px;
+    }
+    select, textarea {
+      background: #222;
+      color: #fff;
+      border-radius: 6px;
+      border: none;
+      padding: 6px;
+      font-size: 15px;
+      outline: none;
+    }
+    textarea {
+      width: 100%;
+      height: 65px;
+      margin-bottom: 10px;
+      resize: vertical;
+      font-size: 15px;
+      font-family: inherit;
+    }
+    .profile-form button {
+      border: none;
+      border-radius: 8px;
+      padding: 9px 16px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-left: 7px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .profile-form .remove-music {
+      background: #c00;
+      color: #fff;
+    }
+    .profile-form .save-btn {
+      background: #00baff;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <!-- الشريط العلوي -->
+  <header class="topbar">
+    <div class="logo">ARABI chat</div>
+    <div class="user-icon" onclick="openProfile()">👤</div>
+  </header>
+
+  <!-- قائمة الرومات -->
+  <div class="rooms-container">
+    <div class="room-card"><span class="count">👥 0</span><h3>غرفة║الجزائر 🇩🇿</h3><button onclick="enterRoom('غرفة║الجزائر 🇩🇿')">دخول الغرفة</button></div>
+    <div class="room-card"><span class="count">👥 0</span><h3>غرفة║العامة 🌍</h3><button onclick="enterRoom('غرفة║العامة 🌍')">دخول الغرفة</button></div>
+    <div class="room-card"><span class="count">👥 0</span><h3>غرفة║مصر 🇪🇬</h3><button onclick="enterRoom('غرفة║مصر 🇪🇬')">دخول الغرفة</button></div>
+    <div class="room-card"><span class="count">👥 0</span><h3>غرفة║المغرب 🇲🇦</h3><button onclick="enterRoom('غرفة║المغرب 🇲🇦')">دخول الغرفة</button></div>
+    <div class="room-card"><span class="count">👥 0</span><h3>غرفة║سوريا 🇸🇾</h3><button onclick="enterRoom('غرفة║سوريا 🇸🇾')">دخول الغرفة</button></div>
+    <div class="room-card"><span class="count">👥 0</span><h3>فرفـشـ💃🏻ـة</h3><button onclick="enterRoom('فرفـشـ💃🏻ـة')">دخول الغرفة</button></div>
+    <div class="room-card"><span class="count">👥 0</span><h3>عهد الاصدقاء</h3><button onclick="enterRoom('عهد الاصادقاء')">دخول الغرفة</button></div>
+  </div>
+
+  <!-- نافذة الملف الشخصي بشكل "AR" -->
+  <div id="profile-modal" class="modal">
+    <div class="profile-content">
+      <div class="profile-header-bar">
+        <button class="music-btn" onclick="removeMusic()" title="حذف موسيقى البروفايل">🎵</button>
+        <button class="close" onclick="closeProfile()">&times;</button>
+      </div>
+      <div class="profile-header">
+        <div class="profile-avatar-wrapper">
+          <img id="profile-avatar-img" src="https://i.pravatar.cc/100" alt="صورة البروفايل">
+          <label for="profile-avatar-input" class="avatar-camera" title="تغيير الصورة">
+            <span>📷</span>
+          </label>
+          <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;">
+        </div>
+        <div class="profile-info">
+          <div class="profile-nick-row">
+            <span class="profile-nick" id="profile-nick">Mohamed_Dz</span>
+            <button class="profile-nick-edit" onclick="editProfileNick()" title="تعديل الاسم">✎</button>
+          </div>
+          <input type="text" id="profile-nick-input" style="display:none;" placeholder="اسم المستخدم المزخرف">
+          <input type="text" id="profile-username" placeholder="اسم المستخدم الحقيقي" style="margin-bottom:7px;">
+          <input type="text" id="profile-status-edit" placeholder="الحالة (مثلاً: SAD)" value="SAD">
+        </div>
+      </div>
+      <div class="profile-tabs">
+        <button class="tab active" onclick="showTab('info')">معلوماتي</button>
+        <button class="tab" onclick="showTab('features')">المميزات</button>
+        <button class="tab" onclick="showTab('friends')">الأصدقاء</button>
+        <button class="tab" onclick="showTab('ignore')">تجاهل</button>
+        <button class="tab" onclick="showTab('options')">خيارات</button>
+        <button class="tab" onclick="showTab('account')">الحساب</button>
+      </div>
+      <div class="profile-form" id="profile-tab-info">
+        <div class="form-row">
+          <select id="profile-gender">
+            <option>ذكر</option>
+            <option>أنثى</option>
+          </select>
+          <select id="profile-age">
+            <!-- أعمار من 9 إلى 99 -->
+            <option>9</option>
+            <option>10</option>
+            <option>11</option>
+            <option>12</option>
+            <option>13</option>
+            <option>14</option>
+            <option>15</option>
+            <option>16</option>
+            <option>17</option>
+            <option>18</option>
+            <option>19</option>
+            <option>20</option>
+            <option>21</option>
+            <option>22</option>
+            <option>23</option>
+            <option>24</option>
+            <option>25</option>
+            <option>26</option>
+            <option>27</option>
+            <option>28</option>
+            <option>29</option>
+            <option>30</option>
+            <option>31</option>
+            <option>32</option>
+            <option>33</option>
+            <option>34</option>
+            <option>35</option>
+            <option>36</option>
+            <option>37</option>
+            <option>38</option>
+            <option>39</option>
+            <option>40</option>
+            <option>41</option>
+            <option>42</option>
+            <option>43</option>
+            <option>44</option>
+            <option>45</option>
+            <option>46</option>
+            <option>47</option>
+            <option>48</option>
+            <option>49</option>
+            <option>50</option>
+            <option>51</option>
+            <option>52</option>
+            <option>53</option>
+            <option>54</option>
+            <option>55</option>
+            <option>56</option>
+            <option>57</option>
+            <option>58</option>
+            <option>59</option>
+            <option>60</option>
+            <option>61</option>
+            <option>62</option>
+            <option>63</option>
+            <option>64</option>
+            <option>65</option>
+            <option>66</option>
+            <option>67</option>
+            <option>68</option>
+            <option>69</option>
+            <option>70</option>
+            <option>71</option>
+            <option>72</option>
+            <option>73</option>
+            <option>74</option>
+            <option>75</option>
+            <option>76</option>
+            <option>77</option>
+            <option>78</option>
+            <option>79</option>
+            <option>80</option>
+            <option>81</option>
+            <option>82</option>
+            <option>83</option>
+            <option>84</option>
+            <option>85</option>
+            <option>86</option>
+            <option>87</option>
+            <option>88</option>
+            <option>89</option>
+            <option>90</option>
+            <option>91</option>
+            <option>92</option>
+            <option>93</option>
+            <option>94</option>
+            <option>95</option>
+            <option>96</option>
+            <option>97</option>
+            <option>98</option>
+            <option>99</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <select id="profile-country">
+            <option>الجزائر</option>
+            <option>مصر</option>
+            <option>المغرب</option>
+            <option>السعودية</option>
+            <option>تونس</option>
+            <option>الإمارات</option>
+            <option>سوريا</option>
+            <option>العراق</option>
+            <option>اليمن</option>
+            <option>ليبيا</option>
+            <option>الأردن</option>
+            <option>فلسطين</option>
+            <option>الكويت</option>
+            <option>البحرين</option>
+            <option>لبنان</option>
+            <option>عمان</option>
+            <option>قطر</option>
+            <option>السودان</option>
+            <option>إنجلترا</option>
+            <option>أخرى</option>
+          </select>
+          <select id="profile-status-select">
+            <option>أعزب</option>
+            <option>متزوج</option>
+            <option>مطلق</option>
+            <option>أرمل</option>
+            <option>غير محدد</option>
+          </select>
+        </div>
+        <textarea id="profile-bio" placeholder="معلوماتي أو نبذة عنك"></textarea>
+        <div style="margin-top:12px;">
+          <button type="button" class="remove-music" onclick="removeMusic()">✖ حذف موسيقى البروفايل</button>
+          <button type="button" class="save-btn" onclick="saveProfile()">💾 حفظ</button>
+        </div>
+      </div>
+      <!-- تابات أخرى يمكن إضافتها هنا بنفس الشكل -->
+    </div>
+  </div>
+
+  <script>
+    // فتح نافذة الملف الشخصي
+    function openProfile() {
+      document.getElementById("profile-modal").style.display = "flex";
+      document.getElementById("profile-nick").textContent = localStorage.getItem("nickname") || "Mohamed_Dz";
+      document.getElementById("profile-nick-input").value = localStorage.getItem("nickname") || "Mohamed_Dz";
+      document.getElementById("profile-nick-input").style.display = "none";
+      document.getElementById("profile-nick").style.display = "inline-block";
+      document.querySelector(".profile-nick-edit").style.display = "inline-block";
+      document.getElementById("profile-username").value = localStorage.getItem("username") || "";
+      document.getElementById("profile-avatar-img").src = localStorage.getItem("avatar") || "https://i.pravatar.cc/100";
+      document.getElementById("profile-gender").value = localStorage.getItem("gender") || "ذكر";
+      document.getElementById("profile-age").value = localStorage.getItem("age") || "9";
+      document.getElementById("profile-country").value = localStorage.getItem("country") || "الجزائر";
+      document.getElementById("profile-status-select").value = localStorage.getItem("status") || "أعزب";
+      document.getElementById("profile-bio").value = localStorage.getItem("bio") || "";
+      document.getElementById("profile-status-edit").value = localStorage.getItem("profileStatus") || "SAD";
+    }
+    function closeProfile() {
+      document.getElementById("profile-modal").style.display = "none";
+    }
+    // تعديل الاسم المزخرف
+    function editProfileNick() {
+      document.getElementById("profile-nick-input").value = document.getElementById("profile-nick").textContent;
+      document.getElementById("profile-nick").style.display = "none";
+      document.querySelector(".profile-nick-edit").style.display = "none";
+      document.getElementById("profile-nick-input").style.display = "inline-block";
+      document.getElementById("profile-nick-input").focus();
+      document.getElementById("profile-nick-input").onblur = function() {
+        document.getElementById("profile-nick").textContent = this.value;
+        document.getElementById("profile-nick").style.display = "inline-block";
+        document.querySelector(".profile-nick-edit").style.display = "inline-block";
+        document.getElementById("profile-nick-input").style.display = "none";
+        localStorage.setItem("nickname", this.value.trim());
+      }
+      document.getElementById("profile-nick-input").onkeydown = function(e){
+        if(e.key === "Enter"){
+          this.blur();
+        }
+      }
+    }
+    // زر حفظ التغييرات
+    function saveProfile() {
+      localStorage.setItem("nickname", document.getElementById("profile-nick").textContent.trim());
+      localStorage.setItem("username", document.getElementById("profile-username").value.trim());
+      localStorage.setItem("avatar", document.getElementById("profile-avatar-img").src);
+      localStorage.setItem("gender", document.getElementById("profile-gender").value);
+      localStorage.setItem("age", document.getElementById("profile-age").value);
+      localStorage.setItem("country", document.getElementById("profile-country").value);
+      localStorage.setItem("status", document.getElementById("profile-status-select").value);
+      localStorage.setItem("bio", document.getElementById("profile-bio").value.trim());
+      localStorage.setItem("profileStatus", document.getElementById("profile-status-edit").value.trim());
+      alert("✅ تم حفظ البروفايل");
+      closeProfile();
+    }
+    // رفع صورة من الجهاز
+    document.getElementById("profile-avatar-input").addEventListener("change", function(e){
+      const file = e.target.files[0];
+      if(file){
+        const reader = new FileReader();
+        reader.onload = function(evt){
+          document.getElementById("profile-avatar-img").src = evt.target.result;
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+    // تغيير التاب (معلوماتي فقط كمثال)
+    function showTab(tab){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelector('[onclick="showTab(\''+tab+'\')"]').classList.add('active');
+      document.getElementById("profile-tab-info").style.display = tab=='info'?"block":"none";
+      // باقي التابات يمكن إضافتها بنفس الطريقة
+    }
+    // زر حذف الموسيقى
+    function removeMusic(){
+      alert("تم حذف موسيقى البروفايل (مثال فقط)");
+    }
+    // دخول غرفة
+    function enterRoom(roomName){
+      const username = localStorage.getItem("username") ||"ضيف";
+      const avatar = localStorage.getItem("avatar") || "https://i.pravatar.cc/50";
+      localStorage.setItem("room", roomName);
+      localStorage.setItem("username", username);
+      localStorage.setItem("avatar", avatar);
+      window.location.href = "chat.html";
+    }
+  </script>
+</body>
+</html>

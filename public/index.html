@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>تسجيل الدخول</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: url('https://i.pinimg.com/1200x/26/69/31/26693104900d7445a7cb21742347fdc2.jpg') no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* طبقة ظل خفيفة فوق الخلفية */
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* صندوق تسجيل الدخول */
+    .form-box {
+      position: relative;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 40px 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      width: 350px;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      text-align: center;
+      animation: fadeIn 1s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-box h2 {
+      margin-bottom: 20px;
+      font-weight: 600;
+      font-size: 26px;
+      color: #fff;
+    }
+
+    .input-box {
+      margin: 15px 0;
+    }
+
+    .input-box input {
+      width: 100%;
+      padding: 12px 15px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+      transition: 0.3s;
+    }
+
+    .input-box input::placeholder {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .input-box input:focus {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #0072ff, #00c6ff);
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      letter-spacing: 1px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+    }
+
+    .switch a {
+      color: #00c6ff;
+      text-decoration: none;
+    }
+
+    .switch a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .form-box {
+        width: 85%;
+        padding: 30px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="form-box">
+      <h2 id="form-title">تسجيل الدخول</h2>
+      
+      <!-- Login form -->
+      <form id="login-form" class="active" onsubmit="goToRooms(event)">
+        <div class="input-box">
+          <input type="text" placeholder="اسم المستخدم" required>
+        </div>
+        <div class="input-box">
+          <input type="password" placeholder="كلمة المرور" required>
+        </div>
+        <button type="submit" class="btn">دخول</button>
+        <p class="switch">ما عندكش حساب؟ 
+          <a href="#" onclick="switchForm('register')">إنشاء حساب</a>
+        </p>
+      </form>
+
+      <!-- Register form -->
+      <form id="register-form" onsubmit="goToRooms(event)" style="display:none;">
+        <div class="input-box">
+          <input type="text" placeholder="اسم المستخدم" required>
+        </div>
+        <div class="input-box">
+          <input type="email" placeholder="البريد الإلكتروني" required>
+        </div>
+        <div class="input-box">
+          <input type="password" placeholder="كلمة المرور" required>
+        </div>
+        <button type="submit" class="btn">إنشاء حساب</button>
+        <p class="switch">عندك حساب؟ 
+          <a href="#" onclick="switchForm('login')">سجّل دخول</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    function goToRooms(e){
+      e.preventDefault();
+      window.location.href = "rooms.html";
+    }
+
+    function switchForm(type) {
+      const loginForm = document.getElementById("login-form");
+      const registerForm = document.getElementById("register-form");
+      const title = document.getElementById("form-title");
+
+      if (type === "register") {
+        loginForm.style.display = "none";
+        registerForm.style.display = "block";
+        title.textContent = "إنشاء حساب";
+      } else {
+        registerForm.style.display = "none";
+        loginForm.style.display = "block";
+        title.textContent = "تسجيل الدخول";
+      }
+    }
+  </script>
+</body>
+</html>

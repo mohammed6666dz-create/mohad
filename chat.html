@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الشات — ARABI chat</title>
+<style>
+:root{
+  --bg:#0f1114;
+  --panel:#111418;
+  --mine:#1900fd;
+  --other:#2a2f36;
+  --text:#eaf6f3;
+}
+body{
+  margin:0;
+  height:100vh;
+  background: url("https://i.pinimg.com/1200x/d6/d4/eb/d6d4eb716fff32c917743ebe8b4fe824.jpg") no-repeat center center/cover;
+  color:var(--text);
+  font-family:"Cairo",sans-serif;
+  display:flex;
+  flex-direction:column;
+}
+.header{
+  background:rgba(17,20,24,0.8);
+  padding:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid #222;
+}
+.header h1{margin:0;font-size:18px;color:var(--mine);}
+.header button{
+  background:#ff4d4d;
+  border:none;
+  padding:6px 12px;
+  border-radius:8px;
+  color:#fff;
+  cursor:pointer;
+  font-weight:600;
+  margin-left:5px;
+}
+.messages{
+  flex:1;
+  overflow-y:auto;
+  padding:22px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.msg-row{display:flex;gap:12px;align-items:flex-start;width:100%}
+.msg-other{justify-content:flex-start;direction:ltr}
+.msg-mine{justify-content:flex-end;direction:ltr}
+.avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;cursor:pointer;transition: transform 0.2s;}
+.avatar:hover{transform: scale(1.1);}
+.bubble{
+  max-width:78%;
+  padding:10px 14px;
+  border-radius:14px;
+  color:var(--text);
+  box-shadow:0 6px 18px rgba(0,0,0,0.4);
+  display:flex;
+  flex-direction:column;
+  gap:4px
+}
+.msg-mine .bubble{background:var(--mine);border-bottom-right-radius:4px;text-align:right}
+.msg-other .bubble{background:var(--other);border-bottom-left-radius:4px;text-align:right}
+.msg-system{justify-content:center;}
+.msg-system .bubble{
+  background:rgba(0,255,0,0.18);
+  text-align:center;
+  color:#b6ffb6;
+  border-radius:10px;
+  font-weight:600;
+  padding:10px 18px;
+  box-shadow:0 0 14px rgba(0,255,0,0.25);
+  width:fit-content;
+}
+.bubble .who{font-weight:700;font-size:14px}
+.bubble .text{font-size:16px}
+.bubble .meta{font-size:12px;opacity:.6}
+.input-area{
+  padding:12px;
+  display:flex;
+  gap:10px;
+  background:rgba(17,17,17,0.8);
+}
+.input-area input{
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  background:#222;
+  color:#fff;
+}
+.btn-send{
+  padding:10px 16px;
+  border-radius:10px;
+  border:none;
+  background:var(--mine);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer
+}
+/* قوائم المتصلين والمتفاعلين */
+.list-popup{
+  display:none;
+  position:absolute;
+  top:50px;
+  left:10px;
+  width:240px;
+  background:rgba(17,17,17,0.95);
+  border-radius:10px;
+  padding:10px;
+  max-height:70vh;
+  overflow-y:auto;
+  z-index:1000;
+}
+.list-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+  padding:5px 8px;
+  border-radius:8px;
+  transition:0.2s;
+}
+.list-item:hover{background:rgba(255,255,255,0.05);}
+.list-item img{width:40px;height:40px;border-radius:50%;object-fit:cover;}
+.list-item .info{display:flex;flex-direction:column;}
+.list-item .info .name{font-weight:700;font-size:14px;}
+.list-item .info .rank{font-size:12px;opacity:0.7;}
+.badge{margin-left:5px;font-weight:bold;}
+.gold{color:gold;}
+.silver{color:silver;}
+.bronze{color:#cd7f32;}
+
+/* لوحة البروفايل القديمة */
+#profile-popup{
+  position: fixed;
+  top:50%;
+  left:50%;
+  transform: translate(-50%,-50%);
+  background: #111418;
+  color: #eaf6f3;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+  z-index: 9999;
+  text-align:center;
+  display:none;
+}
+#profile-popup img{width:120px;height:120px;border-radius:50%;margin-bottom:10px;}
+#profile-popup button{
+  margin-top:10px;padding:8px 16px;border:none;border-radius:8px;background:#ff4d4d;color:white;cursor:pointer;
+  transition:0.2s;
+}
+#profile-popup button:hover{background:#ff1a1a;}
+
+/* لوحة الخيارات السريعة عند الضغط على الصورة */
+.menu-popup{
+  position:absolute;
+  background:#232323;
+  color:#fff;
+  border-radius:10px;
+  box-shadow:0 2px 14px #0005;
+  font-size:17px;
+  min-width:140px;
+  z-index:2000;
+  overflow:hidden;
+  border:2px solid #444;
+}
+.menu-popup .menu-item{
+  padding:12px 17px;
+  cursor:pointer;
+  border-bottom:1px solid #333;
+  text-align:right;
+  transition:background 0.2s;
+}
+.menu-popup .menu-item:hover{background:#222;}
+.menu-popup .menu-item:last-child{border-bottom:none;}
+
+/* لوحة الملف الشخصي الجديدة */
+#profile-popup-full{
+  position:fixed;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  background:#232021;
+  color:#fff;
+  border-radius:20px;
+  width:480px;
+  box-shadow:0 10px 30px #000c;
+  z-index:9999;
+  display:none;
+  text-align:right;
+  border:2px solid #333;
+}
+#profile-popup-full .header-bar{
+  background:#191516;
+  padding:12px 15px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-radius:20px 20px 0 0;
+}
+#profile-popup-full .close-btn{
+  font-size:22px;
+  cursor:pointer;
+  background:#2a2424;
+  border-radius:8px;
+  padding:2px 10px;
+  color:#fff;
+  border:none;
+}
+#profile-popup-full .profile-main{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  padding:16px;
+  border-bottom:2px solid #222;
+}
+#profile-popup-full .profile-avatar{
+  width:80px;height:80px;border-radius:50%;
+  border:4px solid #aaa;background:#eee;object-fit:cover;
+}
+#profile-popup-full .profile-info{flex:1;margin-top:7px;}
+#profile-popup-full .profile-nick{font-size:22px;font-weight:bold;color:#a2f;text-shadow:0 0 4px #fff5;}
+#profile-popup-full .profile-rank{font-size:15px;font-weight:bold;color:gold;}
+#profile-popup-full .profile-status{color:#ffcc00;margin-top:4px;font-size:17px;}
+#profile-popup-full .tabs{background:#201b1b;display:flex;gap:2px;border-bottom:2px solid #222;justify-content:flex-end;}
+#profile-popup-full .tab{background:#333;color:#fff;border:none;padding:8px 17px;border-radius:0 0 0 0;cursor:pointer;font-size:15px;font-weight:bold;outline:none;transition:background 0.2s;}
+#profile-popup-full .tab.active{background:#e00;}
+#profile-popup-full .tab-content{padding:18px 24px;}
+#profile-popup-full .info-row{margin-bottom:8px;font-size:16px;border-bottom:1px solid #222;padding-bottom:5px;}
+#profile-popup-full .info-label{font-weight:bold;color:#eee;margin-left:9px;}
+#profile-popup-full .info-value{color:#ffe;}
+
+/* لوحة النقاط */
+#points-popup{
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  background:#2a2f36;
+  color:#fff;
+  border-radius:14px;
+  padding:32px 23px;
+  box-shadow:0 8px 32px #000c;
+  z-index:9999;
+  text-align:center;
+  min-width:220px;
+  font-size:22px;
+  font-weight:bold;
+  border:2px solid #444;
+  display:none;
+}
+#points-popup .close-btn{
+  position:absolute;top:8px;left:12px;
+  background:#ff2222;color:#fff;font-size:18px;
+  border:none;cursor:pointer;border-radius:8px;padding:2px 12px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>غرفة الدردشة</h1>
+  <div>
+    <button onclick="toggleUserList()">المتصلين</button>
+    <button onclick="toggleTopList()">المتفاعلون</button>
+    <button onclick="leaveChat()">خروج</button>
+  </div>
+</div>
+
+<div id="userListWrapper" class="list-popup"></div>
+<div id="topListWrapper" class="list-popup"></div>
+
+<div class="messages" id="messages"></div>
+<div class="input-area">
+  <input id="msgInput" type="text" placeholder="اكتب رسالتك..." autocomplete="off" />
+  <button class="btn-send" id="sendBtn">إرسال</button>
+</div>
+<div id="profile-popup"></div>
+
+<!-- لوحة الخيارات عند الضغط على الصورة -->
+<div id="menu-popup" class="menu-popup" style="display:none"></div>
+<!-- لوحة الملف الشخصي الجديدة -->
+<div id="profile-popup-full"></div>
+<!-- لوحة النقاط -->
+<div id="points-popup"></div>
+
+<script>
+let username = prompt("اكتب اسمك للانضمام للشات:","مجهول")||"مجهول";
+localStorage.setItem("username",username);
+const avatar = localStorage.getItem("avatar") || "https://i.pravatar.cc/60";
+const messagesDiv=document.getElementById("messages");
+const input=document.getElementById("msgInput");
+const sendBtn=document.getElementById("sendBtn");
+const userListWrapper=document.getElementById("userListWrapper");
+const topListWrapper=document.getElementById("topListWrapper");
+
+// بيانات المستخدمين لتجربة الفحص (أضف مزيد حسب الحاجة)
+const users = {
+  "MOHAMED": {
+    name: "Mohamed_Dz",
+    avatar: "https://i.pravatar.cc/120?u=MOHAMED",
+    points: 9478,
+    rank: "SuperAdmin",
+    rankIcon: "⭐️✅",
+    status: "SAD",
+    join: "2025-04-26",
+    url: "https://arabi.chat/#id48448",
+    age: 9,
+    country: "الجزائر",
+    relation: "أعزب ❤️",
+    gender: "ذكر",
+    friends: ["Ali", "Sara"],
+    premium: "الرتبة الاساسية عضو متألق رتبة 30",
+    premiumTime: "16 أيام 9 ساعات 34 دقائق"
+  }
+  // يمكنك إضافة مزيد من المستخدمين بنفس الشكل
+};
+
+const userRanks={"MOHAMED":"👑 مدير الموقع"};
+function getUserRank(user){return userRanks[user]||"👤 عضو";}
+function getRankClass(rank){
+  if(rank.includes("مدير")) return "rank-مدير";
+  if(rank.includes("سوبر")) return "rank-سوبر";
+  if(rank.includes("أدمن")) return "rank-أدمن";
+  if(rank.includes("مشرف")) return "rank-مشرف";
+  if(rank.includes("بروميم")) return "rank-بروميم";
+  return "rank-عضو";
+}
+
+const usersClient={};
+const pointsPerWord=1;
+const pointsPerLevel=100;
+const storedPoints=parseInt(localStorage.getItem(`${username}-points`))||0;
+const storedLevel=parseInt(localStorage.getItem(`${username}-level`))||0;
+const currentUser={name:username,avatar:avatar,points:storedPoints,level:storedLevel};
+usersClient[username]=currentUser;
+
+function calculateLevel(points){return Math.floor(points/pointsPerLevel);}
+function escapeHtml(str){return String(str).replace(/[&<>"']/g,(m)=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
+
+function addMessage(user,avatarUrl,text,isMine=false,timeStr=null){
+  const row=document.createElement("div");
+  if(user==="النظام"){
+    row.className="msg-row msg-system";
+    row.innerHTML=`<div class="bubble"><div class="text">${escapeHtml(text)}</div></div>`;
+  } else{
+    row.className="msg-row "+(isMine?"msg-mine":"msg-other");
+    const rank=getUserRank(user);
+    const rankClass=getRankClass(rank);
+    // بدل الحدث هنا ليظهر القائمة عند الضغط على الصورة
+    row.innerHTML=`<img class="avatar" src="${escapeHtml(avatarUrl)}" alt="avatar" data-username="${user}">
+      <div class="bubble">
+        <div class="who">${escapeHtml(user)} <span class="${rankClass}">${rank}</span></div>
+        <div class="text">${escapeHtml(text)}</div>
+        <div class="meta">${timeStr||(new Date()).toLocaleTimeString()}</div>
+      </div>`;
+  }
+  messagesDiv.appendChild(row);
+  messagesDiv.scrollTop=messagesDiv.scrollHeight;
+  if(user!=="النظام"){
+    // القائمة الجديدة بدل نافذة البروفايل القديمة
+    row.querySelector(".avatar").addEventListener("click",function(e){
+      showMenuPopup(this, user);
+      e.stopPropagation();
+    });
+  }
+  updateUserList();
+}
+
+function sendMessage(){
+  const txt=input.value.trim();
+  if(!txt)return;
+  const wordCount=txt.split(/\s+/).filter(w=>w).length;
+  currentUser.points+=wordCount*pointsPerWord;
+  localStorage.setItem(`${username}-points`,currentUser.points);
+
+  const newLevel=calculateLevel(currentUser.points);
+  if(newLevel>currentUser.level){
+    currentUser.level=newLevel;
+    localStorage.setItem(`${username}-level`,currentUser.level);
+    addMessage("النظام","",""+currentUser.name+" وصل المستوى "+currentUser.level+"!");
+  }
+  addMessage(currentUser.name,currentUser.avatar,txt,true,new Date().toLocaleTimeString());
+  input.value="";
+  updateTopList();
+}
+
+function updateUserList(){
+  userListWrapper.innerHTML="";
+  Object.values(usersClient).forEach(u=>{
+    const div=document.createElement("div");
+    div.className="list-item";
+    div.innerHTML=`<img src="${u.avatar}"><div class="info"><div class="name">${u.name}</div><div class="rank ${getRankClass(getUserRank(u.name))}">${getUserRank(u.name)}</div></div>`;
+    userListWrapper.appendChild(div);
+  });
+}
+
+function updateTopList(){
+  topListWrapper.innerHTML="";
+  const topUsers=Object.values(usersClient)
+    .sort((a,b)=> (b.points-b.points) + (b.level-a.level))
+    .slice(0,10);
+  topUsers.forEach((u,i)=>{
+    const div=document.createElement("div");
+    div.className="list-item";
+    let badge="";
+    if(i===0) badge='<span class="badge gold">1</span>';
+    if(i===1) badge='<span class="badge silver">2</span>';
+    if(i===2) badge='<span class="badge bronze">3</span>';
+    div.innerHTML=`${badge}<img src="${u.avatar}"><div class="info"><div class="name">${u.name}</div><div class="rank ${getRankClass(getUserRank(u.name))}">${getUserRank(u.name)}</div></div>`;
+    topListWrapper.appendChild(div);
+  });
+}
+
+function toggleUserList(){
+  if(userListWrapper.style.display==="block"){userListWrapper.style.display="none";}
+  else{userListWrapper.style.display="block";}
+}
+
+function toggleTopList(){
+  if(topListWrapper.style.display==="block"){topListWrapper.style.display="none";}
+  else{topListWrapper.style.display="block"; updateTopList();}
+}
+
+// القائمة السريعة عند الضغط على الصورة
+function showMenuPopup(avatarElem, username){
+  const user = users[username] || usersClient[username];
+  const menu = document.getElementById("menu-popup");
+  menu.innerHTML = `
+    <div class="menu-item" onclick="showProfileOfUser('${username}')">فحص الملف الشخصي</div>
+    <div class="menu-item" onclick="showPointsOfUser('${username}')">فحص النقاط</div>
+  `;
+  menu.style.display = "block";
+  // تحديد مكان القائمة بجانب الصورة
+  const rect = avatarElem.getBoundingClientRect();
+  menu.style.top = (window.scrollY + rect.bottom + 8) + "px";
+  menu.style.left = (window.scrollX + rect.left) + "px";
+  setTimeout(() => {
+    document.addEventListener('click', hideMenuPopup);
+  }, 10);
+  menu.onclick = (e) => { e.stopPropagation(); }
+}
+function hideMenuPopup(){
+  document.getElementById("menu-popup").style.display = "none";
+  document.removeEventListener('click', hideMenuPopup);
+}
+
+// عرض النقاط فقط
+function showPointsOfUser(username){
+  hideMenuPopup();
+  const user = users[username] || usersClient[username];
+  const popup = document.getElementById("points-popup");
+  popup.innerHTML = `
+    <button class="close-btn" onclick="document.getElementById('points-popup').style.display='none'">&times;</button>
+    <div>نقاطك الحالية:</div>
+    <div style="font-size:36px;color:#ff0;margin-top:9px;">${user.points}</div>
+  `;
+  popup.style.display = "block";
+}
+
+// عرض الملف الشخصي الاحترافي
+function showProfileOfUser(username){
+  hideMenuPopup();
+  const user = users[username] || usersClient[username];
+  const popup = document.getElementById("profile-popup-full");
+  popup.innerHTML = `
+    <div class="header-bar">
+      <span></span>
+      <button class="close-btn" onclick="document.getElementById('profile-popup-full').style.display='none'">&times;</button>
+    </div>
+    <div class="profile-main">
+      <img class="profile-avatar" src="${user.avatar}">
+      <div class="profile-info">
+        <div class="profile-rank">${user.rank || ''} <span style="color:gold;">${user.rankIcon||''}</span></div>
+        <div class="profile-nick" style="color:#a2f;">💜${user.name}💚</div>
+        <div class="profile-status">${user.status||''}</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="showProfileTab('info')">معلوماتي</button>
+      <button class="tab" onclick="showProfileTab('friends')">الأصدقاء</button>
+    </div>
+    <div class="tab-content" id="profile-tab-info">
+      <div class="info-row"><span class="info-label">الوقت المتبقي لإنتهاء الإشتراك:</span> <span class="info-value">${user.premiumTime||''} / ${user.premium||''}</span></div>
+      <div class="info-row"><span class="info-label">رابط الملف الشخصي:</span> <span class="info-value"><a href="${user.url||'#'}" style="color:orange" target="_blank">${user.url||''}</a></span></div>
+      <div class="info-row"><span class="info-label">العمر:</span> <span class="info-value">${user.age||''} سنة</span></div>
+      <div class="info-row"><span class="info-label">العلاقة:</span> <span class="info-value">${user.relation||''}</span></div>
+      <div class="info-row"><span class="info-label">الجنس:</span> <span class="info-value">${user.gender||''}</span></div>
+      <div class="info-row"><span class="info-label">تاريخ الإنضمام:</span> <span class="info-value">${user.join||''}</span></div>
+      <div class="info-row"><span class="info-label">البلد:</span> <span class="info-value">${user.country||''}</span></div>
+      <div class="info-row"><span class="info-label">النقاط:</span> <span class="info-value">${user.points||''}</span></div>
+    </div>
+    <div class="tab-content" id="profile-tab-friends" style="display:none;">
+      <div class="info-row"><span class="info-label">الأصدقاء:</span> <span class="info-value">${user.friends && user.friends.length ? user.friends.join(", ") : "لا يوجد أصدقاء حتى الآن!"}</span></div>
+    </div>
+  `;
+  popup.style.display = "block";
+  window.showProfileTab = function(tab){
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove('active'));
+    document.querySelector(".tab[onclick=\"showProfileTab('" + tab + "')\"]").classList.add('active');
+    document.getElementById("profile-tab-info").style.display = tab == "info" ? "block" : "none";
+    document.getElementById("profile-tab-friends").style.display = tab == "friends" ? "block" : "none";
+  }
+}
+
+// الوظائف القديمة (تعمل كما هي)
+function showProfilePopup(user){
+  let popup=document.getElementById("profile-popup");
+  popup.innerHTML=`<img src="${user.avatar}">
+    <div><strong>الاسم:</strong> ${user.name}</div>
+    <div><strong>المستوى:</strong> ${user.level}</div>
+    <div><strong>النقاط:</strong> ${user.points}</div>
+    <button onclick="document.getElementById('profile-popup').style.display='none'">اغلاق</button>`;
+  popup.style.display="block";
+}
+
+sendBtn.addEventListener("click",sendMessage);
+input.addEventListener("keydown",(e)=>{if(e.key==="Enter"){sendMessage();}});
+addMessage("النظام","",""+username+" دخل الشات");
+
+// مثال: إضافة رسالة من مستخدم وهمي لتجربة الفحص
+addMessage("MOHAMED", users["MOHAMED"].avatar, "مرحبا! كيف الحال؟", false);
+
+function leaveChat(){alert("تم تسجيل خروجك من الشات!");window.location.href="rooms.html";}
+</script>
+</body>
+</html>
